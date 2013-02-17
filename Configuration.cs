@@ -11,5 +11,7 @@
 
         public static int TileSize = 16;
         public static int TileChunkSize = 32;
+
+        public static uint SpriteBatchSize = 512;
     }
 }

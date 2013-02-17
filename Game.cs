@@ -23,6 +23,7 @@ namespace OpenEmpires
                 return view;
             }
         }
+        public static View GameView;
 
         private static readonly bool[] KeyStates;
         private static Vector2f size;
@@ -62,7 +63,11 @@ namespace OpenEmpires
 
             var terrain = new SLPFile();
             terrain.LoadFile("textures/terrain.slp");
-            map = new Map(8, 8, terrain);
+            map = new Map(16, 16, terrain);
+
+            Console.WriteLine(terrain.m_Frames.Count);
+
+            GameView = new View(DefaultView);
         }
 
         public static void Run()
@@ -104,12 +109,31 @@ namespace OpenEmpires
 
         private static void Update(double time)
         {
+            if (KeyStates[(int)Keyboard.Key.Up])
+            {
+                GameView.Move(new Vector2f(0, (float)time * -250));
+            }
 
+            if (KeyStates[(int)Keyboard.Key.Down])
+            {
+                GameView.Move(new Vector2f(0, (float)time * 250));
+            }
+
+            if (KeyStates[(int)Keyboard.Key.Left])
+            {
+                GameView.Move(new Vector2f((float)time * -250, 0));
+            }
+
+            if (KeyStates[(int)Keyboard.Key.Right])
+            {
+                GameView.Move(new Vector2f((float)time * 250, 0));
+            }
         }
 
         private static void Draw(double time)
         {
-            map.Draw(Window);
+            Window.SetView(GameView);
+            Window.Draw(map);
         }
     }
 }
