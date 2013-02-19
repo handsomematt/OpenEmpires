@@ -38,8 +38,12 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="zlib.net">
+      <HintPath>..\lib\zlib.net.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Scenario.cs" />
     <Compile Include="SLPFile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

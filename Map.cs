@@ -30,11 +30,8 @@ namespace OpenEmpires
 
         private VertexArray vertexArray;
 
-
         public Map(int width, int height, SLPFile _tileset)
         {
-            Width = 32;
-            Height = 32;
             //Width = width;
             //Height = height;
             tilesetfile = _tileset;
@@ -54,17 +51,18 @@ namespace OpenEmpires
             var img = new Image((uint)spritewidth, (uint)(spriteheight*_tileset.m_Frames.Count), constructorbot.ToArray());
             tilesettexture = new Texture(img);
 
+            var map = new Scenario("test.scx").Map;
+            Width = (int)map.width;
+            Height = (int)map.height;
             tiles = new Tile[Width, Height];
 
-            var rnd = new Random();
             for ( var y = 0; y < Height; y++ )
                 for (var x = 0; x < Width; x++)
                 {
-                    tiles[x, y].Frame = (ushort)(rnd.Next(0, 99));
+                    tiles[x, y].Frame = map.terrain[x, y].cnst;
                 }
 
-            
-
+          
             Build();
         }
 

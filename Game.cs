@@ -29,6 +29,7 @@ namespace OpenEmpires
         private static Vector2f size;
 
         private static Map map;
+        private static Sprite selected;
 
         static Game()
         {
@@ -51,6 +52,9 @@ namespace OpenEmpires
             Window.MouseWheelMoved += (sender, args) => DispatchEvent(new MouseWheelInputArgs(args.Delta, args.X, args.Y));
             Window.MouseMoved += (sender, args) => DispatchEvent(new MouseMoveInputArgs(args.X, args.Y));*/
 
+            Window.MouseMoved += new EventHandler<MouseMoveEventArgs>(Window_MouseMoved);
+            Window.MouseWheelMoved += (sender, args) => GameView.Zoom(1 - (args.Delta * 0.1f));
+
             Window.KeyPressed += (sender, args) =>
             {
                 KeyStates[(int)args.Code] = true;
@@ -62,12 +66,25 @@ namespace OpenEmpires
             };
 
             var terrain = new SLPFile();
-            terrain.LoadFile("textures/terrain.slp");
+            terrain.LoadFile("textures/terrain_1.slp");
             map = new Map(16, 16, terrain);
 
             Console.WriteLine(terrain.m_Frames.Count);
 
             GameView = new View(DefaultView);
+
+            var frame = terrain.GetFrame(0);
+            selected = new Sprite(new Texture(new Image((uint)frame.m_Width, (uint)frame.m_Height, frame.GetRGBAArray())));
+            selected.Position = new Vector2f(0, 0);
+        }
+
+        static void Window_MouseMoved(object sender, MouseMoveEventArgs e)
+        {
+            var selectedTile = new Vector2i(1, 1);
+
+            var x = GameView.Center.X + selectedTile.X;
+            var y = GameView.Center.Y + selectedTile.Y;
+            selected.Position = new Vector2f(x, y);
         }
 
         public static void Run()
@@ -134,6 +151,9 @@ namespace OpenEmpires
         {
             Window.SetView(GameView);
             Window.Draw(map);
+
+            //selected.Color = new Color(0, 0, 0, 100);
+            //Window.Draw(selected);
         }
     }
 }

@@ -550,7 +550,6 @@ namespace GenieLib
 
                         default:
                             throw new Exception("Unknown cmd: " + command.ToString("X2"));
-                            break;
                     }
                 }
             }
