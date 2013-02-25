@@ -68,6 +68,9 @@ namespace OpenEmpires
             Blendomatic.ReadBlendomatic(new System.IO.FileStream("blendomatic.dat", System.IO.FileMode.Open));
             map = new Map();
 
+            GameView = new View(DefaultView);
+            GameView.Center = new Vector2f((map.Width/2)*96, 0);
+
             var blend = Blendomatic.BlendingModes[5];
             var tile = blend.Tiles[2];
 
@@ -89,8 +92,6 @@ namespace OpenEmpires
 
             selected = new Sprite(new Texture(img));
             selected.Position = new Vector2f(50, 0);
-
-            GameView = new View(DefaultView);
         }
 
         static void Window_MouseMoved(object sender, MouseMoveEventArgs e)
