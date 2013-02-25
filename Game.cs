@@ -65,26 +65,24 @@ namespace OpenEmpires
                 KeyStates[(int)args.Code] = false;
             };
 
-            var terrain = new SLPFile();
-            terrain.LoadFile("textures/terrain_1.slp");
-            map = new Map(16, 16, terrain);
+            Blendomatic.ReadBlendomatic(new System.IO.FileStream("blendomatic.dat", System.IO.FileMode.Open));
+            map = new Map();
 
-            Console.WriteLine(terrain.m_Frames.Count);
+            var blend = Blendomatic.BlendingModes[5];
+            var tile = blend.Tiles[2];
+
+            // todo convert this into an isometric 97*49 texture from a 48*49 texture??
+
+            var img = new Image(97, 49, tile);
+            selected = new Sprite(new Texture(img));
+            selected.Position = new Vector2f(0, 0);
 
             GameView = new View(DefaultView);
-
-            var frame = terrain.GetFrame(0);
-            selected = new Sprite(new Texture(new Image((uint)frame.m_Width, (uint)frame.m_Height, frame.GetRGBAArray())));
-            selected.Position = new Vector2f(0, 0);
         }
 
         static void Window_MouseMoved(object sender, MouseMoveEventArgs e)
         {
-            var selectedTile = new Vector2i(1, 1);
 
-            var x = GameView.Center.X + selectedTile.X;
-            var y = GameView.Center.Y + selectedTile.Y;
-            selected.Position = new Vector2f(x, y);
         }
 
         public static void Run()
@@ -126,25 +124,26 @@ namespace OpenEmpires
 
         private static void Update(double time)
         {
+            var movex = 0.0f;
+            var movey = 0.0f;
+            var multiplier = 1;
+
+            if (KeyStates[(int)Keyboard.Key.LShift])
+                multiplier = 8;
+
             if (KeyStates[(int)Keyboard.Key.Up])
-            {
-                GameView.Move(new Vector2f(0, (float)time * -250));
-            }
+                movey -= (float)time * 250 * multiplier;
 
             if (KeyStates[(int)Keyboard.Key.Down])
-            {
-                GameView.Move(new Vector2f(0, (float)time * 250));
-            }
+                movey += (float)time * 250 * multiplier;
 
             if (KeyStates[(int)Keyboard.Key.Left])
-            {
-                GameView.Move(new Vector2f((float)time * -250, 0));
-            }
+                movex -= (float)time * 250 * multiplier;
 
             if (KeyStates[(int)Keyboard.Key.Right])
-            {
-                GameView.Move(new Vector2f((float)time * 250, 0));
-            }
+                movex += (float)time * 250 * multiplier;
+
+            GameView.Move(new Vector2f(movex, movey));
         }
 
         private static void Draw(double time)
@@ -152,8 +151,7 @@ namespace OpenEmpires
             Window.SetView(GameView);
             Window.Draw(map);
 
-            //selected.Color = new Color(0, 0, 0, 100);
-            //Window.Draw(selected);
+            Window.Draw(selected);
         }
     }
 }

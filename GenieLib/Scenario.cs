@@ -188,7 +188,8 @@ namespace GenieLib
 
                     for (int i = 0; i < 16; i++)
                         for (int j = 0; j < 16; j++)
-                            Console.WriteLine(i + " - " + j + ": diplomacy=" + reader.ReadInt32());
+                            reader.ReadInt32();
+                            //Console.WriteLine(i + " - " + j + ": diplomacy=" + reader.ReadInt32());
 
                     reader.ReadBytes(0x2D00); // idc
 

@@ -9,13 +9,13 @@ namespace OpenEmpires
 {
     public struct Tile
     {
-        public ushort Frame;
         public byte Elevation;
+        public byte Cnst;
 
-        public Tile(ushort frame)
+        public Tile(byte cnst)
         {
-            Frame = frame;
             Elevation = 1;
+            Cnst = cnst;
         }
     }
 
@@ -25,33 +25,16 @@ namespace OpenEmpires
         public int Height { get; private set; }
 
         private Tile[,] tiles;
-        private SLPFile tilesetfile;
-        private Texture tilesettexture;
 
-        private VertexArray vertexArray;
+        private Dictionary<byte, VertexArray> vertexArrays;
+        private Dictionary<byte, Texture> tilesetTextures;
 
-        public Map(int width, int height, SLPFile _tileset)
+        public Map()
         {
             //Width = width;
             //Height = height;
-            tilesetfile = _tileset;
 
-            var spritewidth = _tileset.GetFrame(0).m_Width;
-            var spriteheight = _tileset.GetFrame(0).m_Height;
-
-            List<byte> constructorbot = new List<byte>(spritewidth*spriteheight*_tileset.m_Frames.Count);
-
-            foreach ( var frame in _tileset.m_Frames )
-            {
-                byte[] b = frame.GetRGBAArray();
-                foreach ( byte by in b )
-                    constructorbot.Add(by);
-            }
-
-            var img = new Image((uint)spritewidth, (uint)(spriteheight*_tileset.m_Frames.Count), constructorbot.ToArray());
-            tilesettexture = new Texture(img);
-
-            var map = new Scenario("test.scx").Map;
+            var map = new Scenario("default0.scx").Map;
             Width = (int)map.width;
             Height = (int)map.height;
             tiles = new Tile[Width, Height];
@@ -59,10 +42,12 @@ namespace OpenEmpires
             for ( var y = 0; y < Height; y++ )
                 for (var x = 0; x < Width; x++)
                 {
-                    tiles[x, y].Frame = map.terrain[x, y].cnst;
+                    tiles[x, y].Cnst = map.terrain[x, y].cnst;
                 }
 
-          
+            vertexArrays = new Dictionary<byte, VertexArray>();
+            tilesetTextures = new Dictionary<byte, Texture>();
+
             Build();
         }
 
@@ -72,20 +57,29 @@ namespace OpenEmpires
             set
             {
                 tiles[x, y] = value;
-                // mark chunk as dirty
             }
         }
 
         private void Build()
         {
-            vertexArray = new VertexArray(PrimitiveType.Quads);
-
             for ( var y = 0; y < Height - 1; y++ )
                 for (var x = 0; x < Width - 1; x++)
                 {
+                    var tile = tiles[x, y];
+
+                    if (!vertexArrays.ContainsKey(tile.Cnst))
+                    {
+                        vertexArrays[tile.Cnst] = new VertexArray(PrimitiveType.Quads);
+
+                        // this also means we've never grabbed the texture before.. maybe?
+                        LoadTerrainTexture(tile.Cnst);
+                    }
+
+                    var vertexArray = vertexArrays[tile.Cnst];
+
                     var topleft = new Vector2f(
                         (y * 96 / 2) + (x * 96 / 2),
-                        (x * 48 / 2) - (y * 48 / 2)
+                        (x * 48 / 2) - (y * 48 / 2) + (tile.Elevation * 24)
                     );
 
                     var topright = new Vector2f(
@@ -106,7 +100,8 @@ namespace OpenEmpires
                     var last = vertexArray.VertexCount;
                     vertexArray.Resize(last + 4);
 
-                    var itexY = tiles[x, y].Frame * 49;
+                    //var itexY = tiles[x, y].Frame * 49;
+                    var itexY = 0;
 
                     vertexArray[last + 0] = new Vertex(topleft, new Vector2f(0, itexY));
                     vertexArray[last + 1] = new Vertex(topright, new Vector2f(96, itexY));
@@ -127,12 +122,40 @@ namespace OpenEmpires
                 }
         }
 
+        private void LoadTerrainTexture(byte tex)
+        {
+            var slpFile = new SLPFile();
+            slpFile.LoadFile("textures/ter" + Configuration.TerrainTextureLookups[tex] + ".slp");
+
+            var spritewidth = slpFile.GetFrame(0).m_Width;
+            var spriteheight = slpFile.GetFrame(0).m_Height;
+
+            List<byte> constructorbot = new List<byte>(spritewidth * spriteheight * slpFile.m_Frames.Count);
+
+            foreach (var frame in slpFile.m_Frames)
+            {
+                byte[] b = frame.GetRGBAArray();
+                foreach (byte by in b)
+                    constructorbot.Add(by);
+            }
+
+            var img = new Image((uint)spritewidth, (uint)(spriteheight * slpFile.m_Frames.Count), constructorbot.ToArray());
+       
+            tilesetTextures[tex] = new Texture(img);
+        }
+
         public void Draw(RenderTarget rt, RenderStates states)
         {
             var view = rt.GetView();
 
-            states.Texture = tilesettexture;
-            vertexArray.Draw(rt, states);
+
+            //states.Texture = tilesettexture;
+
+            foreach (var kv in vertexArrays)
+            {
+                states.Texture = tilesetTextures[kv.Key];
+                kv.Value.Draw(rt, states);
+            }
 
             /*
             for ( var y = 0; y < Height - 1; y++ )

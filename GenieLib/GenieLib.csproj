@@ -43,6 +43,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Blendomatic.cs" />
     <Compile Include="Scenario.cs" />
     <Compile Include="SLPFile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
