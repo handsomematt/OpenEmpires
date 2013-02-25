@@ -73,9 +73,22 @@ namespace OpenEmpires
 
             // todo convert this into an isometric 97*49 texture from a 48*49 texture??
 
-            var img = new Image(97, 49, tile);
+            var img = new Image(97, 49);
+
+            var i = 0;
+            for (var y = 0; y < img.Size.X; y++)
+            {
+                var bytesPerRow = y < 24 ? 1 + (4 * y) : 97 - (4 * (y - 24));
+
+                var startX = 48 - (bytesPerRow / 2);
+                for (var x = 0; x < bytesPerRow; x++)
+                {
+                    img.SetPixel((uint)(startX + x), (uint)y, new Color(tile[i], tile[i], tile[i++]));
+                }
+            }
+
             selected = new Sprite(new Texture(img));
-            selected.Position = new Vector2f(0, 0);
+            selected.Position = new Vector2f(50, 0);
 
             GameView = new View(DefaultView);
         }
