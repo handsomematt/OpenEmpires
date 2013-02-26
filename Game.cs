@@ -32,6 +32,12 @@ namespace OpenEmpires
         private static Sprite selected;
         private static Sprite selected2;
 
+        public static EntityManager EntManager
+        {
+            get;
+            private set;
+        }
+
         static Game()
         {
             KeyStates = new bool[(int)Keyboard.Key.KeyCount];
@@ -161,8 +167,8 @@ namespace OpenEmpires
                 }
 
             selected2 = new Sprite(new Texture(imgg2));
-            
-        
+
+            EntManager = new EntityManager();
         }
 
         static void Window_MouseMoved(object sender, MouseMoveEventArgs e)
@@ -235,6 +241,8 @@ namespace OpenEmpires
         {
             Window.SetView(GameView);
             Window.Draw(map);
+
+            Window.Draw(EntManager);
 
             selected.Position = new Vector2f((map.Width / 2) * 96 - 96 - 96 - 48, 24 * -48 + 24);
             Window.Draw(selected);
