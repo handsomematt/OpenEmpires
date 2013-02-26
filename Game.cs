@@ -30,10 +30,16 @@ namespace OpenEmpires
 
         private static Map map;
         private static Sprite selected;
+        private static Sprite selected2;
 
         static Game()
         {
             KeyStates = new bool[(int)Keyboard.Key.KeyCount];
+        }
+
+        public static int Clamp(int value, int min, int max)
+        {
+            return (value < min) ? min : (value > max) ? max : value;
         }
 
         public static void Initialize()
@@ -71,12 +77,13 @@ namespace OpenEmpires
             GameView = new View(DefaultView);
             GameView.Center = new Vector2f((map.Width/2)*96, 0);
 
-            var blend = Blendomatic.BlendingModes[5];
-            var tile = blend.Tiles[2];
-
-            // todo convert this into an isometric 97*49 texture from a 48*49 texture??
+            var blend = Blendomatic.BlendingModes[2];
+            var tile = blend.Tiles[12];
 
             var img = new Image(97, 49);
+            for (var y = 0; y < img.Size.Y; y++)
+                for (var x = 0; x < img.Size.X; x++)
+                    img.SetPixel((uint)x, (uint)y, new Color(255, 0, 0, 0));
 
             var i = 0;
             for (var y = 0; y < img.Size.X; y++)
@@ -85,13 +92,77 @@ namespace OpenEmpires
 
                 var startX = 48 - (bytesPerRow / 2);
                 for (var x = 0; x < bytesPerRow; x++)
-                {
-                    img.SetPixel((uint)(startX + x), (uint)y, new Color(tile[i], tile[i], tile[i++]));
-                }
+                    img.SetPixel((uint)(startX + x), (uint)y, new Color(0, 0, 0, tile[i++]));
             }
 
-            selected = new Sprite(new Texture(img));
-            selected.Position = new Vector2f(50, 0);
+            var slpFile = new SLPFile();
+            slpFile.LoadFile("textures/ter15002.slp");
+
+            var spritewidth = slpFile.GetFrame(0).m_Width;
+            var spriteheight = slpFile.GetFrame(0).m_Height;
+
+            var imgg = new Image((uint)spritewidth, (uint)(spriteheight ), slpFile.GetFrame(0).GetRGBAArray());
+
+            for (var y = 0; y < imgg.Size.Y; y++)
+                for (var x = 0; x < imgg.Size.X; x++)
+                {
+                    var col = imgg.GetPixel((uint)x, (uint)y);
+                    col.A = (byte)(Math.Min(255, (128-img.GetPixel((uint)x, (uint)y).A)*2));
+
+                    if (img.GetPixel((uint)x, (uint)y).R == 255)
+                        col.A = 0;
+
+                    imgg.SetPixel((uint)x, (uint)y, col);
+                }
+
+            selected = new Sprite(new Texture(imgg));
+
+
+
+
+            /* blend sand to forest now */
+
+            var blend2 = Blendomatic.BlendingModes[2];
+            var tile2 = blend2.Tiles[12];
+
+            var img2 = new Image(97, 49);
+            for (var y = 0; y < img2.Size.Y; y++)
+                for (var x = 0; x < img2.Size.X; x++)
+                    img2.SetPixel((uint)x, (uint)y, new Color(255, 0, 0, 0));
+
+            var i2 = 0;
+            for (var y = 0; y < img.Size.X; y++)
+            {
+                var bytesPerRow = y < 24 ? 1 + (4 * y) : 97 - (4 * (y - 24));
+
+                var startX = 48 - (bytesPerRow / 2);
+                for (var x = 0; x < bytesPerRow; x++)
+                    img2.SetPixel((uint)(startX + x), (uint)y, new Color(0, 0, 0, tile[i2++]));
+            }
+
+            var slpFile2 = new SLPFile();
+            slpFile2.LoadFile("textures/ter15017.slp");
+
+            var spritewidth2 = slpFile2.GetFrame(0).m_Width;
+            var spriteheight2 = slpFile2.GetFrame(0).m_Height;
+
+            var imgg2 = new Image((uint)spritewidth2, (uint)(spriteheight2), slpFile2.GetFrame(0).GetRGBAArray());
+
+            for (var y = 0; y < imgg2.Size.Y; y++)
+                for (var x = 0; x < imgg2.Size.X; x++)
+                {
+                    var col = imgg2.GetPixel((uint)x, (uint)y);
+                    col.A = (byte)(Math.Min(255, (128 - img.GetPixel((uint)x, (uint)y).A) * 2));
+
+                    if (img2.GetPixel((uint)x, (uint)y).R == 255)
+                        col.A = 0;
+
+                    imgg2.SetPixel((uint)x, (uint)y, col);
+                }
+
+            selected2 = new Sprite(new Texture(imgg2));
+            
+        
         }
 
         static void Window_MouseMoved(object sender, MouseMoveEventArgs e)
@@ -165,7 +236,23 @@ namespace OpenEmpires
             Window.SetView(GameView);
             Window.Draw(map);
 
+            selected.Position = new Vector2f((map.Width / 2) * 96 - 96 - 96 - 48, 24 * -48 + 24);
             Window.Draw(selected);
+            selected.Position = new Vector2f((map.Width / 2) * 96 - 96 - 96, 24 * -48);
+            Window.Draw(selected);
+            selected.Position = new Vector2f((map.Width / 2) * 96 - 96 - 48, 24 * -48 - 24);
+            Window.Draw(selected);
+            selected.Position = new Vector2f((map.Width / 2) * 96 - 96, 25 * -48);
+            Window.Draw(selected);
+
+            selected2.Position = new Vector2f((map.Width / 2) * 96 - 96 - 96 - 48 + 48, 24 * -48 + 24 + 24);
+            Window.Draw(selected2);
+            selected2.Position = new Vector2f((map.Width / 2) * 96 - 96 - 96 + 48, 24 * -48 + 24);
+            Window.Draw(selected2);
+            selected2.Position = new Vector2f((map.Width / 2) * 96 - 96 - 48 + 48, 24 * -48 - 24 + 24);
+            Window.Draw(selected2);
+            selected2.Position = new Vector2f((map.Width / 2) * 96 - 96 + 48, 25 * -48 + 24);
+            Window.Draw(selected2);
         }
     }
 }
