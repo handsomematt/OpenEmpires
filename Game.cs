@@ -217,11 +217,11 @@ namespace OpenEmpires
         {
             var movex = 0.0f;
             var movey = 0.0f;
-            var multiplier = 1;
+            var multiplier = 1f;
 
             if (KeyStates[(int)Keyboard.Key.LShift])
-                multiplier = 8;
-
+                multiplier = 8f;
+            
             if (KeyStates[(int)Keyboard.Key.Up])
                 movey -= (float)time * 250 * multiplier;
 
@@ -233,6 +233,9 @@ namespace OpenEmpires
 
             if (KeyStates[(int)Keyboard.Key.Right])
                 movex += (float)time * 250 * multiplier;
+
+            movex *= GameView.Size.X / Window.Size.X;
+            movey *= GameView.Size.Y / Window.Size.Y;
 
             GameView.Move(new Vector2f(movex, movey));
         }
