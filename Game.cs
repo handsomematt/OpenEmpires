@@ -65,7 +65,27 @@ namespace OpenEmpires
             Window.MouseMoved += (sender, args) => DispatchEvent(new MouseMoveInputArgs(args.X, args.Y));*/
 
             Window.MouseMoved += new EventHandler<MouseMoveEventArgs>(Window_MouseMoved);
-            Window.MouseWheelMoved += (sender, args) => GameView.Zoom(1 - (args.Delta * 0.1f));
+            Window.MouseWheelMoved += (sender, args) =>
+            {
+                /* Mouse wheel zoom implementation where the view will zoom
+                 * towards the area the cursor is pointing to
+                 */
+                var mousePos = Mouse.GetPosition(Window);
+                float relX = (float) mousePos.X / Window.Size.X - 0.5f;
+                float relY = (float) mousePos.Y / Window.Size.Y - 0.5f;
+
+                GameView.Move(new Vector2f {
+                    X = relX * GameView.Size.X,
+                    Y = relY * GameView.Size.Y
+                });
+
+                GameView.Zoom(1 - (args.Delta * 0.1f));
+
+                GameView.Move(new Vector2f {
+                    X = -relX * GameView.Size.X,
+                    Y = -relY * GameView.Size.Y
+                });
+            };
 
             Window.KeyPressed += (sender, args) =>
             {
